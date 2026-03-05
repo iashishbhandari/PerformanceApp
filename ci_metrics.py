@@ -7,7 +7,7 @@ from datetime import datetime
 # Config
 project="PerformanceApp.project"
 scheme = "PerformanceApp"
-destination = "platform=iOS Simulator,name=iPhone 17,OS=26.1"
+destination = "generic/platform=iOS Simulator"
 history_file = "ci_metrics_history.json"
 
 # --- 1. Build ---
