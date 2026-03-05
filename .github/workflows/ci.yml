@@ -32,7 +32,7 @@ jobs:
         run: |
           xcodebuild -project PerformanceApp.xcodeproj \
                      -scheme PerformanceApp \
-                     -destination 'platform=iOS Simulator,name=iPhone 17,OS=26.1' build \
+                     -destination 'generic/platform=iOS Simulator' build \
                      | tee build.log
 
       # 6️⃣ Run Unit Tests
@@ -40,7 +40,7 @@ jobs:
         run: |
           xcodebuild -project PerformanceApp.xcodeproj \
                      -scheme PerformanceApp \
-                     -destination 'platform=iOS Simulator,name=iPhone 17,OS=26.1' test \
+                     -destination 'generic/platform=iOS Simulator' test \
                      | tee test.log
 
       # 7️⃣ Generate CI Metrics
