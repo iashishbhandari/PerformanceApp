@@ -30,17 +30,17 @@ jobs:
       # 5️⃣ Build the iOS project
       - name: Build iOS App
         run: |
-          xcodebuild -project SampleApp.xcodeproj \
-                     -scheme SampleApp \
-                     -destination 'platform=iOS Simulator,name=iPhone 13 Mini,OS=17.0' build \
+          xcodebuild -project PerformanceApp.xcodeproj \
+                     -scheme PerformanceApp \
+                     -destination 'platform=iOS Simulator,name=iPhone 17,OS=26.1' build \
                      | tee build.log
 
       # 6️⃣ Run Unit Tests
       - name: Run Unit Tests
         run: |
-          xcodebuild -project SampleApp.xcodeproj \
-                     -scheme SampleApp \
-                     -destination 'platform=iOS Simulator,name=iPhone 13 Mini,OS=17.0' test \
+          xcodebuild -project PerformanceApp.xcodeproj \
+                     -scheme PerformanceApp \
+                     -destination 'platform=iOS Simulator,name=iPhone 17,OS=26.1' test \
                      | tee test.log
 
       # 7️⃣ Generate CI Metrics
