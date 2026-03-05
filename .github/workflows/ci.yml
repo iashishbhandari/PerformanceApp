@@ -2,7 +2,7 @@ name: iOS CI Metrics
 
 on:
   push:
-    branches: [main]
+    branches: [ main ]
 
 permissions:
   contents: write
@@ -12,63 +12,73 @@ jobs:
     runs-on: macos-latest
 
     steps:
-      # 1️⃣ Checkout repo
-      - name: Checkout code
-        uses: actions/checkout@v3
 
-      # 2️⃣ Set up Python
+      # 1️⃣ Checkout repository
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2️⃣ Setup Python
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: "3.x"
 
-      # 3️⃣ Install Python dependencies
-      - name: Install dependencies
+      # 3️⃣ Install dependencies
+      - name: Install Python dependencies
         run: pip install psutil
 
-      # 4️⃣ Install CocoaPods (optional)
+      # 4️⃣ Install CocoaPods (safe if not used)
       - name: Install CocoaPods
-        run: pod install || true
+        run: |
+          if [ -f "Podfile" ]; then
+            pod install
+          fi
 
-      # 5️⃣ Build the iOS project
+      # 5️⃣ Build iOS app
       - name: Build iOS App
         run: |
-          xcodebuild -project PerformanceApp.xcodeproj \
-                     -scheme PerformanceApp \
-                     -destination 'generic/platform=iOS Simulator' build \
-                     | tee build.log
+          xcodebuild \
+          -project PerformanceApp.xcodeproj \
+          -scheme PerformanceApp \
+          -destination 'generic/platform=iOS Simulator' \
+          build | tee build.log
 
-      # 6️⃣ Run Unit Tests
+      # 6️⃣ Run unit tests
       - name: Run Unit Tests
         run: |
-          xcodebuild -project PerformanceApp.xcodeproj \
-                     -scheme PerformanceApp \
-                     -destination 'generic/platform=iOS Simulator' test \
-                     | tee test.log
+          xcodebuild \
+          -project PerformanceApp.xcodeproj \
+          -scheme PerformanceApp \
+          -destination 'generic/platform=iOS Simulator' \
+          test | tee test.log
 
-      # 7️⃣ Generate CI Metrics
+      # 7️⃣ Generate metrics
       - name: Generate CI Metrics
         run: python3 ci_metrics.py
 
-      # 8️⃣ Upload metrics artifact (v4)
+      # 8️⃣ Upload artifact
       - name: Upload Metrics Artifact
         uses: actions/upload-artifact@v4
         with:
           name: ci_metrics_history
           path: ci_metrics_history.json
 
-      # 9️⃣ Push metrics to GitHub Pages for live dashboard
-      - name: Push metrics to GitHub Pages
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # 9️⃣ Deploy metrics to GitHub Pages
+      - name: Deploy dashboard data
         run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-          # Fetch gh-pages or create if not exists
-          git fetch origin gh-pages || true
-          git checkout gh-pages || git checkout --orphan gh-pages
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+
+          mkdir gh-pages
+          cd gh-pages
+
+          git init
+          git remote add origin https://github.com/${{ github.repository }}.git
+          git checkout -b gh-pages
+
           mkdir -p dashboard
-          cp ci_metrics_history.json dashboard/
-          git add dashboard/ci_metrics_history.json
-          git commit -m "Update CI metrics" || echo "No changes"
-          git push -u origin gh-pages
+          cp ../ci_metrics_history.json dashboard/
+
+          git add .
+          git commit -m "Update CI metrics"
+          git push --force origin gh-pages
