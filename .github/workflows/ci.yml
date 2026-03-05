@@ -13,28 +13,28 @@ jobs:
 
     steps:
 
-      # 1️⃣ Checkout repository
+      # Checkout repository
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2️⃣ Setup Python
+      # Setup Python
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.x"
 
-      # 3️⃣ Install dependencies
+      # Install dependencies
       - name: Install Python dependencies
         run: pip install psutil
 
-      # 4️⃣ Install CocoaPods (safe if not used)
+      # Install CocoaPods (only if Podfile exists)
       - name: Install CocoaPods
         run: |
           if [ -f "Podfile" ]; then
             pod install
           fi
 
-      # 5️⃣ Build iOS app
+      # Build iOS App
       - name: Build iOS App
         run: |
           xcodebuild \
@@ -43,7 +43,7 @@ jobs:
           -destination 'generic/platform=iOS Simulator' \
           build | tee build.log
 
-      # 6️⃣ Run unit tests
+      # Run Unit Tests
       - name: Run Unit Tests
         run: |
           xcodebuild \
@@ -52,19 +52,21 @@ jobs:
           -destination 'generic/platform=iOS Simulator' \
           test | tee test.log
 
-      # 7️⃣ Generate metrics
+      # Generate CI Metrics
       - name: Generate CI Metrics
         run: python3 ci_metrics.py
 
-      # 8️⃣ Upload artifact
+      # Upload artifact
       - name: Upload Metrics Artifact
         uses: actions/upload-artifact@v4
         with:
           name: ci_metrics_history
           path: ci_metrics_history.json
 
-      # 9️⃣ Deploy metrics to GitHub Pages
+      # Deploy metrics to GitHub Pages
       - name: Deploy dashboard data
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
@@ -73,7 +75,6 @@ jobs:
           cd gh-pages
 
           git init
-          git remote add origin https://github.com/${{ github.repository }}.git
           git checkout -b gh-pages
 
           mkdir -p dashboard
@@ -81,4 +82,6 @@ jobs:
 
           git add .
           git commit -m "Update CI metrics"
+
+          git remote add origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git
           git push --force origin gh-pages
