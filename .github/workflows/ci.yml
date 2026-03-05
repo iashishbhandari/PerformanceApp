@@ -1,24 +1,71 @@
-name: Swift CI
+name: iOS CI Metrics
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
-  build:
+  build-test-metrics:
     runs-on: macos-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      # 1️⃣ Checkout repo
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      - name: Select Xcode version
-        run: sudo xcode-select -switch /Applications/Xcode.app
+      # 2️⃣ Set up Python
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.x"
 
-      - name: Build project
-        run: swift build
+      # 3️⃣ Install Python dependencies
+      - name: Install dependencies
+        run: pip install psutil
 
-      - name: Run tests
-        run: swift test
+      # 4️⃣ Install CocoaPods (if your project uses it)
+      - name: Install CocoaPods
+        run: pod install || true
+
+      # 5️⃣ Build the iOS project
+      - name: Build iOS App
+        run: |
+          xcodebuild -project PerformanceApp.xcodeproj \
+                     -scheme PerformanceApp \
+                     -destination 'platform=iOS Simulator,name=iPhone 17,OS=26.1' build \
+                     | tee build.log
+
+      # 6️⃣ Run tests
+      - name: Run Unit Tests
+        run: |
+          xcodebuild -project PerformanceApp.xcodeproj \
+                     -scheme PerformanceApp \
+                     -destination 'platform=iOS Simulator,name=iPhone 17,OS=26.1' test \
+                     | tee test.log
+
+      # 7️⃣ Generate CI metrics
+      - name: Generate CI Metrics
+        run: python3 ci_metrics.py
+
+      # 8️⃣ Upload metrics artifact (optional, for download)
+      - name: Upload Metrics Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ci_metrics_history
+          path: ci_metrics_history.json
+
+      # 9️⃣ Push metrics to GitHub Pages (updates static dashboard)
+      - name: Push metrics to GitHub Pages
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          # Switch or create gh-pages branch
+          git fetch origin gh-pages || true
+          git checkout gh-pages || git checkout --orphan gh-pages
+          mkdir -p dashboard
+          cp ci_metrics_history.json dashboard/
+          git add dashboard/ci_metrics_history.json
+          git commit -m "Update CI metrics" || echo "No changes"
+          git push -u origin gh-pages
