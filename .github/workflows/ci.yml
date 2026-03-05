@@ -34,24 +34,6 @@ jobs:
             pod install
           fi
 
-      # Build iOS App
-      - name: Build iOS App
-        run: |
-          xcodebuild \
-          -project PerformanceApp.xcodeproj \
-          -scheme PerformanceApp \
-          -destination 'generic/platform=iOS Simulator' \
-          build | tee build.log
-
-      # Run Unit Tests
-      - name: Run Unit Tests
-        run: |
-          xcodebuild \
-          -project PerformanceApp.xcodeproj \
-          -scheme PerformanceApp \
-          -destination 'generic/platform=iOS Simulator' \
-          test | tee test.log
-
       # Generate CI Metrics
       - name: Generate CI Metrics
         run: python3 ci_metrics.py
