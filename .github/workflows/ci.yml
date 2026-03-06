@@ -54,17 +54,15 @@ jobs:
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
 
-          mkdir gh-pages
+          git clone https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git gh-pages
           cd gh-pages
 
-          git init
-          git checkout -b gh-pages
+          git checkout gh-pages || git checkout -b gh-pages
 
           mkdir -p dashboard
           cp ../ci_metrics_history.json dashboard/
 
-          git add .
-          git commit -m "Update CI metrics"
+          git add dashboard/ci_metrics_history.json
+          git commit -m "Update CI metrics" || echo "No changes"
 
-          git remote add origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git
-          git push --force origin gh-pages
+          git push origin gh-pages
