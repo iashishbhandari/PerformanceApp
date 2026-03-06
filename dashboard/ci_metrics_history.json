@@ -30,5 +30,21 @@
     "binary_size_mb": 0,
     "dsym_size_mb": 0,
     "timestamp": "2026-03-05T12:30:45.075938"
+  },
+  {
+    "build_time_sec": 3.9597220420837402,
+    "warnings_count": 0,
+    "errors_count": 0,
+    "test_results": {
+      "total": 0,
+      "passed": 0,
+      "failed": 0,
+      "duration_sec": 0.6174759864807129
+    },
+    "startup_time_ms": 450,
+    "memory_mb": 120,
+    "binary_size_mb": 0,
+    "dsym_size_mb": 0,
+    "timestamp": "2026-03-06T12:21:20.707308"
   }
 ]
